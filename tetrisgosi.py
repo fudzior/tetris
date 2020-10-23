@@ -6,16 +6,19 @@ pygame.init()
 
 # 0.0 Ustawienia okna:
 
+BOARD_WIDTH = 480
+BOARD_HEIGHT = 480
+MODULE_SIZE = 30
+
 #logo = pygame.image.load("tetris_logo.png")
 #pygame.display.set_icon(logo)
 pygame.display.set_caption("Tetris Gosi")
-
-screen = pygame.display.set_mode(size=(500, 500))
+screen = pygame.display.set_mode(size=(BOARD_WIDTH, BOARD_HEIGHT))
 
 # 0.1 Tworzenie siatki obszaru gry
 
-number_of_board_columns = 10
-number_of_board_rows = 10
+number_of_board_columns = int(BOARD_WIDTH / MODULE_SIZE)
+number_of_board_rows = int(BOARD_HEIGHT / MODULE_SIZE)
 
 x, y, s = 0, 0, 0
 
@@ -23,10 +26,9 @@ board = [[[x, y, s]] * number_of_board_columns for i in range(number_of_board_ro
 
 for row in range(number_of_board_rows):
     for column in range(number_of_board_columns):
-        x = column * 50
-        y = row * 50
+        x = column * MODULE_SIZE
+        y = row * MODULE_SIZE
         board[row][column] = [x, y, s]
-
 
 # 0.2 Tworzenie modulu (kwadracika)
 
@@ -36,12 +38,12 @@ class Module:
         self.y_module = y_module
 
     def draw(self):
-        pygame.draw.rect(screen, (255, 255, 255), (self.x_module, self.y_module, 50, 50))
+        pygame.draw.rect(screen, (255, 255, 255), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
         # full_or_empty_module = 1
         # return full_or_empty_module
 
     def remove(self):
-        pygame.draw.rect(screen, (0, 0, 0), (self.x_module, self.y_module, 50, 50))
+        pygame.draw.rect(screen, (0, 0, 0), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
         # full_empty_module = 0
         # return full_empty_module
 
@@ -109,8 +111,8 @@ class Block:
         for row in range(self.size_of_block):
             for column in range(self.size_of_block):
                 if self.shape[row][column] == 1:
-                    x_module = self.x_block - 50 + column * 50
-                    y_module = self.y_block - 50 + row * 50
+                    x_module = self.x_block - MODULE_SIZE + column * MODULE_SIZE
+                    y_module = self.y_block - MODULE_SIZE + row * MODULE_SIZE
                     module = Module(x_module, y_module)
                     self.modules_xy[i][0] = x_module
                     self.modules_xy[i][1] = y_module
@@ -139,15 +141,15 @@ class Block:
 
         # sprawdzanie czy czesc shape z "0" wykracza poza plansze:
         if not self.block_set:
-            if self.x_block < 50:
+            if self.x_block < MODULE_SIZE:
                 self.move(0)
                 if self.shape == block_I_270deg:
                     self.move(0)
-            if self.x_block > 500 - (self.size_of_block - 1) * 50:
+            if self.x_block > BOARD_WIDTH - (self.size_of_block - 1) * MODULE_SIZE:
                 self.move(2)
                 if self.shape == block_I_copy:
                     self.move(2)
-            if self.y_block > 500 - (self.size_of_block - 1) * 50:
+            if self.y_block > BOARD_HEIGHT - (self.size_of_block - 1) * MODULE_SIZE:
                 self.move(3)
                 if self.shape == block_I_90deg:
                     self.move(3)
@@ -179,53 +181,53 @@ class Block:
         if not self.block_set:
             if direction == 0: #RIGHT
                 for row in range(4):
-                    if self.modules_xy[row][0] + 50 > 450:
+                    if self.modules_xy[row][0] + MODULE_SIZE >= BOARD_WIDTH:
                         collision = True
                 if not collision:
                     for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0] + 50
+                        modules_xy_moved[row][0] = self.modules_xy[row][0] + MODULE_SIZE
                         modules_xy_moved[row][1] = self.modules_xy[row][1]
                     self.remove()
                     draw_moved_block()
-                    self.x_block += 50
+                    self.x_block += MODULE_SIZE
             elif direction == 1: #DOWN
                 for row in range(4):
-                    if self.modules_xy[row][1] + 50 > 450:
+                    if self.modules_xy[row][1] + MODULE_SIZE >= BOARD_HEIGHT:
                         self.block_set = True
                         self.do_after_block_set()
                 if not self.block_set:
                     for row in range(4):
                         modules_xy_moved[row][0] = self.modules_xy[row][0]
-                        modules_xy_moved[row][1] = self.modules_xy[row][1] + 50
+                        modules_xy_moved[row][1] = self.modules_xy[row][1] + MODULE_SIZE
                     self.remove()
                     draw_moved_block()
-                    self.y_block += 50
+                    self.y_block += MODULE_SIZE
             elif direction == 2: #LEFT
                 for row in range(4):
-                    if self.modules_xy[row][0] - 50 < 0:
+                    if self.modules_xy[row][0] - MODULE_SIZE < 0:
                         collision = True
                 if not collision:
                     for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0] - 50
+                        modules_xy_moved[row][0] = self.modules_xy[row][0] - MODULE_SIZE
                         modules_xy_moved[row][1] = self.modules_xy[row][1]
                     self.remove()
                     draw_moved_block()
-                    self.x_block -= 50
+                    self.x_block -= MODULE_SIZE
             elif direction == 3:  # UP tylko do uzycia w funkcji self.rotate()
                 for row in range(4):
-                    if self.modules_xy[row][1] - 50 < 0:
+                    if self.modules_xy[row][1] - MODULE_SIZE < 0:
                         collision = True
                 if not collision:
                     for row in range(4):
                         modules_xy_moved[row][0] = self.modules_xy[row][0]
-                        modules_xy_moved[row][1] = self.modules_xy[row][1] - 50
+                        modules_xy_moved[row][1] = self.modules_xy[row][1] - MODULE_SIZE
                     self.remove()
                     draw_moved_block()
-                    self.y_block -= 50
+                    self.y_block -= MODULE_SIZE
 
 # 1. losowanie klocka, ktory zaraz spadnie
 
-L1 = Block(100, 100, block_I)
+L1 = Block( 3 * MODULE_SIZE, 3 * MODULE_SIZE, block_I)
 L1.draw()
 
 # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
