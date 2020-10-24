@@ -119,15 +119,12 @@ class Block:
                     i += 1
                     module.draw()
                 pygame.display.update()
-        return self.modules_xy
 
     def rotate(self):
         shape_rotated = [[0] * self.size_of_block for i in range(self.size_of_block)]
-
-        block_I_copy = [[0, 1, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 1, 0, 0]]
+        moved_right = False
+        moved_left = False
+        moved_up = False
 
         block_I_90deg = [[0, 0, 0, 0],
                          [1, 1, 1, 1],
@@ -140,28 +137,82 @@ class Block:
                           [0, 0, 1, 0]]
 
         # sprawdzanie czy czesc shape z "0" wykracza poza plansze:
+        #TU BEDZIE BLAD, BO JESLI BEDZIE KOLIZJA PRZY KRAWEDZI
+        # TO KLOCEK ZAMIAST SIE OBROCIC SIE PRZESUNIE, A NIE POWINIEN ROBIC NIC
         if not self.block_set:
             if self.x_block < MODULE_SIZE:
                 self.move(0)
+                moved_right = True
                 if self.shape == block_I_270deg:
                     self.move(0)
             if self.x_block > BOARD_WIDTH - (self.size_of_block - 1) * MODULE_SIZE:
                 self.move(2)
-                if self.shape == block_I_copy:
+                moved_left = True
+                if self.shape == block_I:
                     self.move(2)
             if self.y_block > BOARD_HEIGHT - (self.size_of_block - 1) * MODULE_SIZE:
                 self.move(3)
+                moved_up = True
                 if self.shape == block_I_90deg:
                     self.move(3)
+
+            #sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
+            collision = False
+            i, x_rotated, y_rotated = 0, 0, 0
+            modules_xy_rotated = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
             for row in range(self.size_of_block):
                 for column in range(self.size_of_block):
                     shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
             for row in range(self.size_of_block):
                 for column in range(self.size_of_block):
+                    if shape_rotated[row][column] == 1:
+                        x_rotated = self.x_block - MODULE_SIZE + column * MODULE_SIZE
+                        y_rotated = self.y_block - MODULE_SIZE + row * MODULE_SIZE
+                        for row1 in range(number_of_board_rows):
+                            for column1 in range(number_of_board_columns):
+                                if x_rotated == board[row1][column1][0] and y_rotated == board[row1][column1][1]:
+                                    if board[row1][column1][2] == 1:
+                                        collision = True
+                                        #NIC NIE ROBIC JAK JEST KOLIZKA
+                                    else: #JESLI JEDEN MODUL MA KOLIZJE TO modules_xy_rotated WPROWADZI TYLKO
+                                        # 3 WARTOSCI, A POZOSTALY BEDZIE 0,0,0, ALE PO WYJSCIU Z PETLI TE
+                                        # WARTOSCI NIE BEDA UZYWANE,BO NASTAPILA KOLIZJA, I TABLICA modules_xy_rotated
+                                        # BEDZIE WYPELNIANA NA NOWO W KOLEJNEJITERACJI PETLI
+                                        modules_xy_rotated[i][0] = x_rotated
+                                        modules_xy_rotated[i][1] = y_rotated
+                        i += 1
+            print("modules_xy_rotated", modules_xy_rotated)
+            print("collision", collision)
+            if not collision:
+                self.remove()
+                for row in range(self.size_of_block):
+                    for column in range(self.size_of_block):
+                        self.shape[row][column] = shape_rotated[row][column]
+                for i in range(4):
+                    self.modules_xy[i] = modules_xy_rotated[i]
+                for i in range(4):
+                    x_module = modules_xy_rotated[i][0]
+                    y_module = modules_xy_rotated[i][1]
+                    module = Module(x_module, y_module)
+                    module.draw()
+            else:
+                if moved_right:
+                    self.move(2)
+                elif moved_left:
+                    self.move(0)
+                elif moved_up:
+                    self.move(1)
+            pygame.display.update()
+
+            """for row in range(self.size_of_block):
+                for column in range(self.size_of_block):
+                    shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
+            for row in range(self.size_of_block):
+                for column in range(self.size_of_block):
                     self.shape[row][column] = shape_rotated[row][column]
             self.remove()
-            self.draw()
+            self.draw()"""
 
     def move(self, direction):
         def draw_moved_block():
@@ -227,8 +278,19 @@ class Block:
 
 # 1. losowanie klocka, ktory zaraz spadnie
 
-L1 = Block( 3 * MODULE_SIZE, 3 * MODULE_SIZE, block_I)
-L1.draw()
+block1 = Block( 1 * MODULE_SIZE, 1 * MODULE_SIZE, block_I)
+block1.draw()
+
+#board to test:
+print("board[5][1]", board[5][1])
+board[5][1] = [30, 150, 1]
+module = Module(30, 150)
+module.draw()
+print("board[5][3]", board[5][3])
+board[5][3] = [90, 150, 1]
+module = Module(90, 150)
+module.draw()
+pygame.display.update()
 
 # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
 
@@ -245,12 +307,12 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                L1.rotate()
+                block1.rotate()
             if event.key == pygame.K_RIGHT:
-                L1.move(0)
+                block1.move(0)
             if event.key == pygame.K_DOWN:
-                L1.move(1)
+                block1.move(1)
             if event.key == pygame.K_LEFT:
-                L1.move(2)
-            if event.key == pygame.K_UP:
-                L1.move(3)
+                block1.move(2)
+
+
