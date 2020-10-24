@@ -120,7 +120,7 @@ class Block:
                     module.draw()
                 pygame.display.update()
 
-    def rotate(self):
+    def rotate(self): #WYGLADA NA TO ZE DZIALA I TRZEBA TESTOWAC
         shape_rotated = [[0] * self.size_of_block for i in range(self.size_of_block)]
         moved_right = False
         moved_left = False
@@ -137,24 +137,22 @@ class Block:
                           [0, 0, 1, 0]]
 
         # sprawdzanie czy czesc shape z "0" wykracza poza plansze:
-        #TU BEDZIE BLAD, BO JESLI BEDZIE KOLIZJA PRZY KRAWEDZI
-        # TO KLOCEK ZAMIAST SIE OBROCIC SIE PRZESUNIE, A NIE POWINIEN ROBIC NIC
         if not self.block_set:
             if self.x_block < MODULE_SIZE:
-                self.move(0)
+                self.x_block += MODULE_SIZE
                 moved_right = True
                 if self.shape == block_I_270deg:
-                    self.move(0)
+                    self.x_block += MODULE_SIZE
             if self.x_block > BOARD_WIDTH - (self.size_of_block - 1) * MODULE_SIZE:
-                self.move(2)
+                self.x_block -= MODULE_SIZE
                 moved_left = True
                 if self.shape == block_I:
-                    self.move(2)
+                    self.x_block -= MODULE_SIZE
             if self.y_block > BOARD_HEIGHT - (self.size_of_block - 1) * MODULE_SIZE:
-                self.move(3)
+                self.y_block -= MODULE_SIZE
                 moved_up = True
                 if self.shape == block_I_90deg:
-                    self.move(3)
+                    self.y_block -= MODULE_SIZE
 
             #sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
             collision = False
@@ -198,11 +196,17 @@ class Block:
                     module.draw()
             else:
                 if moved_right:
-                    self.move(2)
+                    self.x_block -= MODULE_SIZE
+                    if self.shape == block_I_270deg:
+                        self.x_block -= MODULE_SIZE
                 elif moved_left:
-                    self.move(0)
+                    self.x_block += MODULE_SIZE
+                    if self.shape == block_I:
+                        self.x_block += MODULE_SIZE
                 elif moved_up:
-                    self.move(1)
+                    self.y_block += MODULE_SIZE
+                    if self.shape == block_I_90deg:
+                        self.y_block += MODULE_SIZE
             pygame.display.update()
 
             """for row in range(self.size_of_block):
