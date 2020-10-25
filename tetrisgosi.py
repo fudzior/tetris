@@ -194,8 +194,6 @@ class Block:
                                         modules_xy_rotated[i][0] = x_rotated
                                         modules_xy_rotated[i][1] = y_rotated
                         i += 1
-            print("modules_xy_rotated", modules_xy_rotated)
-            print("collision", collision)
             if not collision:
                 self.remove()
                 for row in range(self.size_of_block):
@@ -223,15 +221,6 @@ class Block:
                         self.y_block += MODULE_SIZE
             pygame.display.update()
 
-            """for row in range(self.size_of_block):
-                for column in range(self.size_of_block):
-                    shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
-            for row in range(self.size_of_block):
-                for column in range(self.size_of_block):
-                    self.shape[row][column] = shape_rotated[row][column]
-            self.remove()
-            self.draw()"""
-
     def move(self, direction):
         def draw_moved_block():
             for row in range(4):
@@ -244,52 +233,96 @@ class Block:
                 module.draw()
             pygame.display.update()
 
+        def check_collision_after_move():
+            collision1 = False
+            for row in range(number_of_board_rows):
+                for column in range(number_of_board_columns):
+                    if x_moved == board[row][column][0] and y_moved == board[row][column][1]:
+                        if board[row][column][2] == 1:
+                            collision1 = True
+                            return collision1
+                            break
+
         modules_xy_moved = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         collision = False
 
+        i, x_moved, y_moved = 0, 0, 0
+
         if not self.block_set:
             if direction == Direction.RIGHT:
-                for row in range(4):
-                    if self.modules_xy[row][0] + MODULE_SIZE >= BOARD_WIDTH:
+                for i in range(4):
+                    if self.modules_xy[i][0] + MODULE_SIZE >= BOARD_WIDTH:
                         collision = True
                 if not collision:
-                    for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0] + MODULE_SIZE
-                        modules_xy_moved[row][1] = self.modules_xy[row][1]
+                    for i in range(4):
+                        x_moved = self.modules_xy[i][0] + MODULE_SIZE
+                        y_moved = self.modules_xy[i][1]
+                        if check_collision_after_move():
+                            collision = True
+                            print("collision", collision)
+                            break
+                if not collision:
+                    for i in range(4):
+                        modules_xy_moved[i][0] = self.modules_xy[i][0] + MODULE_SIZE
+                        modules_xy_moved[i][1] = self.modules_xy[i][1]
                     self.remove()
                     draw_moved_block()
                     self.x_block += MODULE_SIZE
             elif direction == Direction.DOWN:
-                for row in range(4):
-                    if self.modules_xy[row][1] + MODULE_SIZE >= BOARD_HEIGHT:
+                for i in range(4):
+                    if self.modules_xy[i][1] + MODULE_SIZE >= BOARD_HEIGHT:
                         self.block_set = True
                         self.do_after_block_set()
                 if not self.block_set:
-                    for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0]
-                        modules_xy_moved[row][1] = self.modules_xy[row][1] + MODULE_SIZE
+                    for i in range(4):
+                        x_moved = self.modules_xy[i][0]
+                        y_moved = self.modules_xy[i][1] + MODULE_SIZE
+                        if check_collision_after_move():
+                            collision = True
+                            print("collision", collision)
+                            break
+                if not collision:
+                    for i in range(4):
+                        modules_xy_moved[i][0] = self.modules_xy[i][0]
+                        modules_xy_moved[i][1] = self.modules_xy[i][1] + MODULE_SIZE
                     self.remove()
                     draw_moved_block()
                     self.y_block += MODULE_SIZE
             elif direction == Direction.LEFT:
-                for row in range(4):
-                    if self.modules_xy[row][0] - MODULE_SIZE < 0:
+                for i in range(4):
+                    if self.modules_xy[i][0] - MODULE_SIZE < 0:
                         collision = True
                 if not collision:
-                    for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0] - MODULE_SIZE
-                        modules_xy_moved[row][1] = self.modules_xy[row][1]
+                    for i in range(4):
+                        x_moved = self.modules_xy[i][0] - MODULE_SIZE
+                        y_moved = self.modules_xy[i][1]
+                        if check_collision_after_move():
+                            collision = True
+                            print("collision", collision)
+                            break
+                if not collision:
+                    for i in range(4):
+                        modules_xy_moved[i][0] = self.modules_xy[i][0] - MODULE_SIZE
+                        modules_xy_moved[i][1] = self.modules_xy[i][1]
                     self.remove()
                     draw_moved_block()
                     self.x_block -= MODULE_SIZE
             elif direction == Direction.UP:  # tylko do uzycia w funkcji self.rotate()
-                for row in range(4):
-                    if self.modules_xy[row][1] - MODULE_SIZE < 0:
+                for i in range(4):
+                    if self.modules_xy[i][1] - MODULE_SIZE < 0:
                         collision = True
                 if not collision:
-                    for row in range(4):
-                        modules_xy_moved[row][0] = self.modules_xy[row][0]
-                        modules_xy_moved[row][1] = self.modules_xy[row][1] - MODULE_SIZE
+                    for i in range(4):
+                        x_moved = self.modules_xy[i][0]
+                        y_moved = self.modules_xy[i][1] - MODULE_SIZE
+                        if check_collision_after_move():
+                            collision = True
+                            print("collision", collision)
+                            break
+                if not collision:
+                    for i in range(4):
+                        modules_xy_moved[i][0] = self.modules_xy[i][0]
+                        modules_xy_moved[i][1] = self.modules_xy[i][1] - MODULE_SIZE
                     self.remove()
                     draw_moved_block()
                     self.y_block -= MODULE_SIZE
