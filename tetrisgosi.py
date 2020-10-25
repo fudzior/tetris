@@ -4,6 +4,7 @@ pygame.init()
 
 from enum import Enum
 
+
 class Direction(Enum):
     RIGHT = 0
     DOWN = 1
@@ -15,12 +16,12 @@ class Direction(Enum):
 
 # 0.0 Ustawienia okna:
 
-BOARD_WIDTH = 480
-BOARD_HEIGHT = 480
-MODULE_SIZE = 30
+BOARD_WIDTH = 500
+BOARD_HEIGHT = 500
+MODULE_SIZE = 50
 
-#logo = pygame.image.load("tetris_logo.png")
-#pygame.display.set_icon(logo)
+# logo = pygame.image.load("tetris_logo.png")
+# pygame.display.set_icon(logo)
 pygame.display.set_caption("Tetris Gosi")
 screen = pygame.display.set_mode(size=(BOARD_WIDTH, BOARD_HEIGHT))
 
@@ -39,7 +40,9 @@ for row in range(number_of_board_rows):
         y = row * MODULE_SIZE
         board[row][column] = [x, y, s]
 
+
 # 0.2 Tworzenie modulu (kwadracika)
+
 
 class Module:
     def __init__(self, x_module, y_module):
@@ -48,13 +51,9 @@ class Module:
 
     def draw(self):
         pygame.draw.rect(screen, (255, 255, 255), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
-        # full_or_empty_module = 1
-        # return full_or_empty_module
 
     def remove(self):
         pygame.draw.rect(screen, (0, 0, 0), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
-        # full_empty_module = 0
-        # return full_empty_module
 
 
 # 0.3 Tworzenie map klockow
@@ -105,7 +104,7 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i] == board[row][column]:
                         board[row][column][2] = 1
-                        print("board", board[row][column])
+                        print("block is set on board", board[row][column])
 
     def remove(self):
         for row in range(4):
@@ -129,7 +128,7 @@ class Block:
                     module.draw()
                 pygame.display.update()
 
-    def rotate(self): #WYGLADA NA TO ZE DZIALA I TRZEBA TESTOWAC
+    def rotate(self):
         shape_rotated = [[0] * self.size_of_block for i in range(self.size_of_block)]
         moved_right = False
         moved_left = False
@@ -168,7 +167,7 @@ class Block:
                 if self.shape == block_I_90deg:
                     self.y_block -= MODULE_SIZE
 
-            #sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
+            # sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
             collision = False
             i, x_rotated, y_rotated = 0, 0, 0
             modules_xy_rotated = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -186,8 +185,8 @@ class Block:
                                 if x_rotated == board[row1][column1][0] and y_rotated == board[row1][column1][1]:
                                     if board[row1][column1][2] == 1:
                                         collision = True
-                                        #NIC NIE ROBIC JAK JEST KOLIZKA
-                                    else: #JESLI JEDEN MODUL MA KOLIZJE TO modules_xy_rotated WPROWADZI TYLKO
+                                        # NIC NIE ROBIC JAK JEST KOLIZKA
+                                    else:  # JESLI JEDEN MODUL MA KOLIZJE TO modules_xy_rotated WPROWADZI TYLKO
                                         # 3 WARTOSCI, A POZOSTALY BEDZIE 0,0,0, ALE PO WYJSCIU Z PETLI TE
                                         # WARTOSCI NIE BEDA UZYWANE,BO NASTAPILA KOLIZJA, I TABLICA modules_xy_rotated
                                         # BEDZIE WYPELNIANA NA NOWO W KOLEJNEJITERACJI PETLI
@@ -209,11 +208,11 @@ class Block:
             else:
                 if moved_right:
                     self.x_block -= MODULE_SIZE
-                    if self.shape == block_I_180deg: #CIEKAWE ZE DZIALA, POPOROWNUJE WSKAZNIKI NA TABICE, NEI TABLICE
+                    if self.shape == block_I_180deg:
                         self.x_block -= MODULE_SIZE
                 elif moved_left:
                     self.x_block += MODULE_SIZE
-                    if self.shape == block_I_copy: #MUSI BYC _copy ,BO INACZEJ NEI DZIALA
+                    if self.shape == block_I_copy:  # MUSI BYC _copy ,BO INACZEJ NIE DZIALA
                         self.x_block += MODULE_SIZE
                 elif moved_up:
                     self.y_block += MODULE_SIZE
@@ -241,7 +240,6 @@ class Block:
                         if board[row][column][2] == 1:
                             collision1 = True
                             return collision1
-                            break
 
         modules_xy_moved = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         collision = False
@@ -259,7 +257,6 @@ class Block:
                         y_moved = self.modules_xy[i][1]
                         if check_collision_after_move():
                             collision = True
-                            print("collision", collision)
                             break
                 if not collision:
                     for i in range(4):
@@ -273,15 +270,16 @@ class Block:
                     if self.modules_xy[i][1] + MODULE_SIZE >= BOARD_HEIGHT:
                         self.block_set = True
                         self.do_after_block_set()
+                        break
                 if not self.block_set:
                     for i in range(4):
                         x_moved = self.modules_xy[i][0]
                         y_moved = self.modules_xy[i][1] + MODULE_SIZE
                         if check_collision_after_move():
-                            collision = True
-                            print("collision", collision)
+                            self.block_set = True
+                            self.do_after_block_set()
                             break
-                if not collision:
+                if not self.block_set:
                     for i in range(4):
                         modules_xy_moved[i][0] = self.modules_xy[i][0]
                         modules_xy_moved[i][1] = self.modules_xy[i][1] + MODULE_SIZE
@@ -298,7 +296,6 @@ class Block:
                         y_moved = self.modules_xy[i][1]
                         if check_collision_after_move():
                             collision = True
-                            print("collision", collision)
                             break
                 if not collision:
                     for i in range(4):
@@ -307,7 +304,7 @@ class Block:
                     self.remove()
                     draw_moved_block()
                     self.x_block -= MODULE_SIZE
-            elif direction == Direction.UP:  # tylko do uzycia w funkcji self.rotate()
+            """elif direction == Direction.UP:  
                 for i in range(4):
                     if self.modules_xy[i][1] - MODULE_SIZE < 0:
                         collision = True
@@ -318,35 +315,40 @@ class Block:
                         if check_collision_after_move():
                             collision = True
                             print("collision", collision)
-                            break
+                            break 
                 if not collision:
                     for i in range(4):
                         modules_xy_moved[i][0] = self.modules_xy[i][0]
                         modules_xy_moved[i][1] = self.modules_xy[i][1] - MODULE_SIZE
                     self.remove()
                     draw_moved_block()
-                    self.y_block -= MODULE_SIZE
+                    self.y_block -= MODULE_SIZE"""
+
 
 # 1. losowanie klocka, ktory zaraz spadnie
 
-block1 = Block( 1 * MODULE_SIZE, 1 * MODULE_SIZE, block_I)
+block1 = Block(1 * MODULE_SIZE, 1 * MODULE_SIZE, block_I)
 block1.draw()
 
-#board to test:
-print("board[5][1]", board[5][1])
-board[5][1] = [30, 150, 1]
-module = Module(30, 150)
-module.draw()
-print("board[5][3]", board[5][3])
-board[5][3] = [90, 150, 1]
-module = Module(90, 150)
-module.draw()
-pygame.display.update()
+# BLOCKS FOR TESTS:
+block2 = Block(50, 400, block_J)
+block2.draw()
+block2.do_after_block_set()
+block3 = Block(150, 450, block_O)
+block3.draw()
+block3.do_after_block_set()
+block4 = Block(250, 350, block_I)
+block4.draw()
+block4.do_after_block_set()
+block5 = Block(400, 450, block_O)
+block5.draw()
+block5.do_after_block_set()
+print("\n tutaj zaczynaja sie nowe komunikaty")
 
 # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
 
 # 3. kasowanie lini, sprawdzanie czy przegrana
-#to chyba bedzie w class Block
+# to chyba bedzie w class Block
 
 # 4. Glowny program, obsluga zdarzen i klawiszy
 
@@ -365,5 +367,3 @@ while running:
                 block1.move(Direction.DOWN)
             if event.key == pygame.K_LEFT:
                 block1.move(Direction.LEFT)
-
-
