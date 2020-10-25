@@ -2,6 +2,15 @@ import pygame
 
 pygame.init()
 
+from enum import Enum
+
+class Direction(Enum):
+    RIGHT = 0
+    DOWN = 1
+    LEFT = 2
+    UP = 3
+
+
 # 0. Ustawienia poczatkowe:
 
 # 0.0 Ustawienia okna:
@@ -131,22 +140,27 @@ class Block:
                          [0, 0, 0, 0],
                          [0, 0, 0, 0]]
 
-        block_I_270deg = [[0, 0, 1, 0],
+        block_I_180deg = [[0, 0, 1, 0],
                           [0, 0, 1, 0],
                           [0, 0, 1, 0],
                           [0, 0, 1, 0]]
+
+        block_I_copy = [[0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0]]
 
         # sprawdzanie czy czesc shape z "0" wykracza poza plansze:
         if not self.block_set:
             if self.x_block < MODULE_SIZE:
                 self.x_block += MODULE_SIZE
                 moved_right = True
-                if self.shape == block_I_270deg:
+                if self.shape == block_I_180deg:
                     self.x_block += MODULE_SIZE
             if self.x_block > BOARD_WIDTH - (self.size_of_block - 1) * MODULE_SIZE:
                 self.x_block -= MODULE_SIZE
                 moved_left = True
-                if self.shape == block_I:
+                if self.shape == block_I_copy:
                     self.x_block -= MODULE_SIZE
             if self.y_block > BOARD_HEIGHT - (self.size_of_block - 1) * MODULE_SIZE:
                 self.y_block -= MODULE_SIZE
@@ -197,11 +211,11 @@ class Block:
             else:
                 if moved_right:
                     self.x_block -= MODULE_SIZE
-                    if self.shape == block_I_270deg:
+                    if self.shape == block_I_180deg: #CIEKAWE ZE DZIALA, POPOROWNUJE WSKAZNIKI NA TABICE, NEI TABLICE
                         self.x_block -= MODULE_SIZE
                 elif moved_left:
                     self.x_block += MODULE_SIZE
-                    if self.shape == block_I:
+                    if self.shape == block_I_copy: #MUSI BYC _copy ,BO INACZEJ NEI DZIALA
                         self.x_block += MODULE_SIZE
                 elif moved_up:
                     self.y_block += MODULE_SIZE
@@ -234,7 +248,7 @@ class Block:
         collision = False
 
         if not self.block_set:
-            if direction == 0: #RIGHT
+            if direction == Direction.RIGHT:
                 for row in range(4):
                     if self.modules_xy[row][0] + MODULE_SIZE >= BOARD_WIDTH:
                         collision = True
@@ -245,7 +259,7 @@ class Block:
                     self.remove()
                     draw_moved_block()
                     self.x_block += MODULE_SIZE
-            elif direction == 1: #DOWN
+            elif direction == Direction.DOWN:
                 for row in range(4):
                     if self.modules_xy[row][1] + MODULE_SIZE >= BOARD_HEIGHT:
                         self.block_set = True
@@ -257,7 +271,7 @@ class Block:
                     self.remove()
                     draw_moved_block()
                     self.y_block += MODULE_SIZE
-            elif direction == 2: #LEFT
+            elif direction == Direction.LEFT:
                 for row in range(4):
                     if self.modules_xy[row][0] - MODULE_SIZE < 0:
                         collision = True
@@ -268,7 +282,7 @@ class Block:
                     self.remove()
                     draw_moved_block()
                     self.x_block -= MODULE_SIZE
-            elif direction == 3:  # UP tylko do uzycia w funkcji self.rotate()
+            elif direction == Direction.UP:  # tylko do uzycia w funkcji self.rotate()
                 for row in range(4):
                     if self.modules_xy[row][1] - MODULE_SIZE < 0:
                         collision = True
@@ -313,10 +327,10 @@ while running:
             if event.key == pygame.K_SPACE:
                 block1.rotate()
             if event.key == pygame.K_RIGHT:
-                block1.move(0)
+                block1.move(Direction.RIGHT)
             if event.key == pygame.K_DOWN:
-                block1.move(1)
+                block1.move(Direction.DOWN)
             if event.key == pygame.K_LEFT:
-                block1.move(2)
+                block1.move(Direction.LEFT)
 
 
