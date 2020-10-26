@@ -105,6 +105,7 @@ class Block:
                     if self.modules_xy[i] == board[row][column]:
                         board[row][column][2] = 1
                         print("block is set on board", board[row][column])
+        self.block_set = True
 
     def remove(self):
         for row in range(4):
@@ -166,6 +167,7 @@ class Block:
                 moved_up = True
                 if self.shape == block_I_90deg:
                     self.y_block -= MODULE_SIZE
+            #TODO rozwazyc 0 w shape nad gorna krawedzia
 
             # sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
             collision = False
@@ -176,7 +178,7 @@ class Block:
                 for column in range(self.size_of_block):
                     shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
 
-            for row in range(self.size_of_block): # A MOZE ZROBIC Z TEGO FUNKCJE ZEBY WYJSC JEDNYM RETURNEM
+            for row in range(self.size_of_block): #TODO A MOZE ZROBIC Z TEGO FUNKCJE ZEBY WYJSC JEDNYM RETURNEM
                 if collision:
                     break
                 for column in range(self.size_of_block):
@@ -273,7 +275,6 @@ class Block:
             elif direction == Direction.DOWN:
                 for i in range(4):
                     if self.modules_xy[i][1] + MODULE_SIZE >= BOARD_HEIGHT:
-                        self.block_set = True
                         self.do_after_block_set()
                         break
                 if not self.block_set:
@@ -281,7 +282,6 @@ class Block:
                         x_moved = self.modules_xy[i][0]
                         y_moved = self.modules_xy[i][1] + MODULE_SIZE
                         if check_collision_after_move():
-                            self.block_set = True
                             self.do_after_block_set()
                             break
                 if not self.block_set:
@@ -333,7 +333,7 @@ class Block:
 
 # 1. losowanie klocka, ktory zaraz spadnie
 
-block1 = Block(1 * MODULE_SIZE, 1 * MODULE_SIZE, block_I)
+block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
 block1.draw()
 
 # BLOCKS FOR TESTS:
@@ -364,12 +364,16 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                block1.rotate()
-            if event.key == pygame.K_RIGHT:
-                block1.move(Direction.RIGHT)
-            if event.key == pygame.K_DOWN:
-                block1.move(Direction.DOWN)
-            if event.key == pygame.K_LEFT:
-                block1.move(Direction.LEFT)
+        if not block1.block_set:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    block1.rotate()
+                if event.key == pygame.K_RIGHT:
+                    block1.move(Direction.RIGHT)
+                if event.key == pygame.K_DOWN:
+                    block1.move(Direction.DOWN)
+                if event.key == pygame.K_LEFT:
+                    block1.move(Direction.LEFT)
+        else:
+            block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_L)
+            block1.draw()
