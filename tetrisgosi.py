@@ -104,7 +104,7 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i] == board[row][column]:
                         board[row][column][2] = 1
-                        print("block is set on board", board[row][column])
+                        #print("block is set on board", board[row][column])
         self.block_set = True
 
     def remove(self):
@@ -134,11 +134,17 @@ class Block:
         moved_right = False
         moved_left = False
         moved_up = False
+        moved_down = False
 
         block_I_90deg = [[0, 0, 0, 0],
                          [1, 1, 1, 1],
                          [0, 0, 0, 0],
                          [0, 0, 0, 0]]
+
+        block_I_270deg = [[0, 0, 0, 0],
+                          [0, 0, 0, 0],
+                          [1, 1, 1, 1],
+                          [0, 0, 0, 0]]
 
         block_I_180deg = [[0, 0, 1, 0],
                           [0, 0, 1, 0],
@@ -167,7 +173,11 @@ class Block:
                 moved_up = True
                 if self.shape == block_I_90deg:
                     self.y_block -= MODULE_SIZE
-            #TODO rozwazyc 0 w shape nad gorna krawedzia
+            if self.y_block < MODULE_SIZE:
+                self.y_block += MODULE_SIZE
+                moved_down = True
+                if self.shape == block_I_270deg:
+                    self.y_block += MODULE_SIZE
 
             # sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
             collision = False
@@ -224,6 +234,10 @@ class Block:
                     self.y_block += MODULE_SIZE
                     if self.shape == block_I_90deg:
                         self.y_block += MODULE_SIZE
+                elif moved_down:
+                    self.y_block -= MODULE_SIZE
+                    if self.shape == block_I_270deg:
+                        self.y_block -= MODULE_SIZE
             pygame.display.update()
 
     def move(self, direction):
@@ -354,6 +368,32 @@ print("\n tutaj zaczynaja sie nowe komunikaty")
 # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
 
 # 3. kasowanie lini, sprawdzanie czy przegrana
+
+def delete_line():
+    full_line = False
+    for row in range (number_of_board_columns):
+        for column in range(number_of_board_columns):
+            if board[row][column][2] == 1:
+                full_line = True
+            else:
+                full_line = False
+                break
+        if full_line:
+            for column1 in range(number_of_board_columns):
+                module = Module(column1 * MODULE_SIZE, row * MODULE_SIZE)
+                module.remove()
+            #TODO delay(500s) zeby gracz wydzial usunieta linie
+            for row1 in range(row, 0, -1):
+                for column1 in range(number_of_board_columns):
+                    if board[row1 -1][column1][2] == 1:
+                        module1 = Module(column1 * MODULE_SIZE, row1 * MODULE_SIZE)
+                        module1.draw()
+                        module1 = Module(column1 * MODULE_SIZE, (row1 - 1) * MODULE_SIZE)
+                        module1.remove()
+                    board[row1][column1][2] = board[row1 - 1][column1][2]
+
+            #TODO po przesunieciu w dol klockow powinnam znowu wywolywac funkcje delete_line()
+
 # to chyba bedzie w class Block
 
 # 4. Glowny program, obsluga zdarzen i klawiszy
@@ -375,5 +415,6 @@ while running:
                 if event.key == pygame.K_LEFT:
                     block1.move(Direction.LEFT)
         else:
+            delete_line()
             block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_L)
             block1.draw()
