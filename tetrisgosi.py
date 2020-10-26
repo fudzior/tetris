@@ -175,21 +175,25 @@ class Block:
             for row in range(self.size_of_block):
                 for column in range(self.size_of_block):
                     shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
-            for row in range(self.size_of_block):
+
+            for row in range(self.size_of_block): # A MOZE ZROBIC Z TEGO FUNKCJE ZEBY WYJSC JEDNYM RETURNEM
+                if collision:
+                    break
                 for column in range(self.size_of_block):
+                    if collision:
+                        break
                     if shape_rotated[row][column] == 1:
                         x_rotated = self.x_block - MODULE_SIZE + column * MODULE_SIZE
                         y_rotated = self.y_block - MODULE_SIZE + row * MODULE_SIZE
                         for row1 in range(number_of_board_rows):
+                            if collision:
+                                break
                             for column1 in range(number_of_board_columns):
                                 if x_rotated == board[row1][column1][0] and y_rotated == board[row1][column1][1]:
                                     if board[row1][column1][2] == 1:
                                         collision = True
-                                        # NIC NIE ROBIC JAK JEST KOLIZKA
-                                    else:  # JESLI JEDEN MODUL MA KOLIZJE TO modules_xy_rotated WPROWADZI TYLKO
-                                        # 3 WARTOSCI, A POZOSTALY BEDZIE 0,0,0, ALE PO WYJSCIU Z PETLI TE
-                                        # WARTOSCI NIE BEDA UZYWANE,BO NASTAPILA KOLIZJA, I TABLICA modules_xy_rotated
-                                        # BEDZIE WYPELNIANA NA NOWO W KOLEJNEJITERACJI PETLI
+                                        break
+                                    else:
                                         modules_xy_rotated[i][0] = x_rotated
                                         modules_xy_rotated[i][1] = y_rotated
                         i += 1
@@ -251,6 +255,7 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i][0] + MODULE_SIZE >= BOARD_WIDTH:
                         collision = True
+                        break
                 if not collision:
                     for i in range(4):
                         x_moved = self.modules_xy[i][0] + MODULE_SIZE
@@ -290,6 +295,7 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i][0] - MODULE_SIZE < 0:
                         collision = True
+                        break
                 if not collision:
                     for i in range(4):
                         x_moved = self.modules_xy[i][0] - MODULE_SIZE
