@@ -383,16 +383,16 @@ def delete_line():
                 module = Module(column1 * MODULE_SIZE, row * MODULE_SIZE)
                 module.remove()
             #TODO delay(500s) zeby gracz wydzial usunieta linie
+            #TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
             for row1 in range(row, 0, -1):
                 for column1 in range(number_of_board_columns):
-                    if board[row1 -1][column1][2] == 1:
+                    if board[row1 - 1][column1][2] == 1:
                         module1 = Module(column1 * MODULE_SIZE, row1 * MODULE_SIZE)
                         module1.draw()
                         module1 = Module(column1 * MODULE_SIZE, (row1 - 1) * MODULE_SIZE)
                         module1.remove()
                     board[row1][column1][2] = board[row1 - 1][column1][2]
-
-            #TODO po przesunieciu w dol klockow powinnam znowu wywolywac funkcje delete_line()
+            return full_line
 
 # to chyba bedzie w class Block
 
@@ -415,6 +415,7 @@ while running:
                 if event.key == pygame.K_LEFT:
                     block1.move(Direction.LEFT)
         else:
-            delete_line()
+            while delete_line(): #TODO sprawdzic czy mozna to zrobic lepiej
+                delete_line()
             block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_L)
             block1.draw()
