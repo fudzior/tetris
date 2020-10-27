@@ -1,9 +1,6 @@
 import pygame
-
 pygame.init()
-
 from enum import Enum
-
 from random import randint
 
 
@@ -18,9 +15,9 @@ class Direction(Enum):
 
 # 0.0 Ustawienia okna:
 
-BOARD_WIDTH = 500
-BOARD_HEIGHT = 500
-MODULE_SIZE = 50
+BOARD_WIDTH = 300
+BOARD_HEIGHT = 420
+MODULE_SIZE = 30
 
 # logo = pygame.image.load("tetris_logo.png")
 # pygame.display.set_icon(logo)
@@ -88,6 +85,7 @@ block_S = [[1, 0, 0],
            [1, 1, 0],
            [0, 1, 0]]
 
+
 def switch_number_shape(number):
     switcher = {
         0: block_O,
@@ -99,6 +97,7 @@ def switch_number_shape(number):
         6: block_S
     }
     return switcher.get(number, block_O)
+
 
 # 0.4 Manipulacja klockiem
 
@@ -337,53 +336,20 @@ class Block:
                     self.remove()
                     draw_moved_block()
                     self.x_block -= MODULE_SIZE
-            """elif direction == Direction.UP:  
-                for i in range(4):
-                    if self.modules_xy[i][1] - MODULE_SIZE < 0:
-                        collision = True
-                if not collision:
-                    for i in range(4):
-                        x_moved = self.modules_xy[i][0]
-                        y_moved = self.modules_xy[i][1] - MODULE_SIZE
-                        if check_collision_after_move():
-                            collision = True
-                            print("collision", collision)
-                            break 
-                if not collision:
-                    for i in range(4):
-                        modules_xy_moved[i][0] = self.modules_xy[i][0]
-                        modules_xy_moved[i][1] = self.modules_xy[i][1] - MODULE_SIZE
-                    self.remove()
-                    draw_moved_block()
-                    self.y_block -= MODULE_SIZE"""
 
 
-block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
+block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
 block1.draw()
 
-# BLOCKS FOR TESTS:
-"""block2 = Block(50, 400, block_J)
-block2.draw()
-block2.do_after_block_set()
-block3 = Block(150, 450, block_O)
-block3.draw()
-block3.do_after_block_set()
-block4 = Block(250, 350, block_I)
-block4.draw()
-block4.do_after_block_set()
-block5 = Block(400, 450, block_O)
-block5.draw()
-block5.do_after_block_set()"""
 print("\n tutaj zaczynaja sie nowe komunikaty")
 
 
-# 2. Automatyczne przesuwanie klocka w dol co okreslony czas
-
 # 3. kasowanie lini, sprawdzanie czy przegrana
+
 
 def delete_line():
     full_line = False
-    for row in range(number_of_board_columns):
+    for row in range(number_of_board_rows):
         for column in range(number_of_board_columns):
             if board[row][column][2] == 1:
                 full_line = True
@@ -394,7 +360,6 @@ def delete_line():
             for column1 in range(number_of_board_columns):
                 module = Module(column1 * MODULE_SIZE, row * MODULE_SIZE)
                 module.remove()
-            # TODO delay(500s) zeby gracz wydzial usunieta linie
             # TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
             for row1 in range(row, 0, -1):
                 for column1 in range(number_of_board_columns):
@@ -409,13 +374,15 @@ def delete_line():
 
 # 4. Glowny program, obsluga zdarzen i klawiszy
 
+pygame.time.set_timer(pygame.USEREVENT, 1000)
 running = True
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if not block1.block_set:
+            if event.type == pygame.USEREVENT:  # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
+                block1.move(Direction.DOWN)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     block1.rotate()
@@ -431,5 +398,5 @@ while running:
             # 1. losowanie klocka, ktory zaraz spadnie
             random_number = randint(0, 6)
             block_shape = switch_number_shape(random_number)
-            block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
+            block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
             block1.draw()
