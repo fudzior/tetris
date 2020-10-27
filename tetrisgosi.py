@@ -4,6 +4,8 @@ pygame.init()
 
 from enum import Enum
 
+from random import randint
+
 
 class Direction(Enum):
     RIGHT = 0
@@ -86,6 +88,17 @@ block_S = [[1, 0, 0],
            [1, 1, 0],
            [0, 1, 0]]
 
+def switch_number_shape(number):
+    switcher = {
+        0: block_O,
+        1: block_L,
+        2: block_J,
+        3: block_I,
+        4: block_T,
+        5: block_Z,
+        6: block_S
+    }
+    return switcher.get(number, block_O)
 
 # 0.4 Manipulacja klockiem
 
@@ -104,7 +117,7 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i] == board[row][column]:
                         board[row][column][2] = 1
-                        #print("block is set on board", board[row][column])
+                        # print("block is set on board", board[row][column])
         self.block_set = True
 
     def remove(self):
@@ -188,7 +201,7 @@ class Block:
                 for column in range(self.size_of_block):
                     shape_rotated[column][self.size_of_block - row - 1] = self.shape[row][column]
 
-            for row in range(self.size_of_block): #TODO A MOZE ZROBIC Z TEGO FUNKCJE ZEBY WYJSC JEDNYM RETURNEM
+            for row in range(self.size_of_block):  # TODO A MOZE ZROBIC Z TEGO FUNKCJE ZEBY WYJSC JEDNYM RETURNEM
                 if collision:
                     break
                 for column in range(self.size_of_block):
@@ -345,13 +358,11 @@ class Block:
                     self.y_block -= MODULE_SIZE"""
 
 
-# 1. losowanie klocka, ktory zaraz spadnie
-
 block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
 block1.draw()
 
 # BLOCKS FOR TESTS:
-block2 = Block(50, 400, block_J)
+"""block2 = Block(50, 400, block_J)
 block2.draw()
 block2.do_after_block_set()
 block3 = Block(150, 450, block_O)
@@ -362,8 +373,9 @@ block4.draw()
 block4.do_after_block_set()
 block5 = Block(400, 450, block_O)
 block5.draw()
-block5.do_after_block_set()
+block5.do_after_block_set()"""
 print("\n tutaj zaczynaja sie nowe komunikaty")
+
 
 # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
 
@@ -371,7 +383,7 @@ print("\n tutaj zaczynaja sie nowe komunikaty")
 
 def delete_line():
     full_line = False
-    for row in range (number_of_board_columns):
+    for row in range(number_of_board_columns):
         for column in range(number_of_board_columns):
             if board[row][column][2] == 1:
                 full_line = True
@@ -382,8 +394,8 @@ def delete_line():
             for column1 in range(number_of_board_columns):
                 module = Module(column1 * MODULE_SIZE, row * MODULE_SIZE)
                 module.remove()
-            #TODO delay(500s) zeby gracz wydzial usunieta linie
-            #TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
+            # TODO delay(500s) zeby gracz wydzial usunieta linie
+            # TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
             for row1 in range(row, 0, -1):
                 for column1 in range(number_of_board_columns):
                     if board[row1 - 1][column1][2] == 1:
@@ -394,7 +406,6 @@ def delete_line():
                     board[row1][column1][2] = board[row1 - 1][column1][2]
             return full_line
 
-# to chyba bedzie w class Block
 
 # 4. Glowny program, obsluga zdarzen i klawiszy
 
@@ -415,7 +426,10 @@ while running:
                 if event.key == pygame.K_LEFT:
                     block1.move(Direction.LEFT)
         else:
-            while delete_line(): #TODO sprawdzic czy mozna to zrobic lepiej
+            while delete_line():  # TODO sprawdzic czy mozna to zrobic lepiej
                 delete_line()
-            block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_L)
+            # 1. losowanie klocka, ktory zaraz spadnie
+            random_number = randint(0, 6)
+            block_shape = switch_number_shape(random_number)
+            block1 = Block(int(number_of_board_rows / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
             block1.draw()
