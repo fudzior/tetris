@@ -1,7 +1,10 @@
 import pygame
+
 pygame.init()
+
 from enum import Enum
 from random import randint
+from copy import deepcopy
 
 
 class Direction(Enum):
@@ -9,7 +12,6 @@ class Direction(Enum):
     DOWN = 1
     LEFT = 2
     UP = 3
-
 
 # 0. Ustawienia poczatkowe:
 
@@ -43,16 +45,12 @@ for row in range(number_of_board_rows):
 # 0.2 Tworzenie modulu (kwadracika)
 
 
-class Module:
-    def __init__(self, x_module, y_module):
-        self.x_module = x_module
-        self.y_module = y_module
+def draw_module(x_module, y_module):
+    pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
 
-    def draw(self):
-        pygame.draw.rect(screen, (255, 255, 255), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
 
-    def remove(self):
-        pygame.draw.rect(screen, (0, 0, 0), (self.x_module, self.y_module, MODULE_SIZE, MODULE_SIZE))
+def remove_module(x_module, y_module):
+    pygame.draw.rect(screen, (0, 0, 0), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
 
 
 # 0.3 Tworzenie map klockow
@@ -123,8 +121,7 @@ class Block:
         for row in range(4):
             x_module = self.modules_xy[row][0]
             y_module = self.modules_xy[row][1]
-            module = Module(x_module, y_module)
-            module.remove()
+            remove_module(x_module, y_module)
         pygame.display.update()
 
     def draw(self):
@@ -134,11 +131,10 @@ class Block:
                 if self.shape[row][column] == 1:
                     x_module = self.x_block - MODULE_SIZE + column * MODULE_SIZE
                     y_module = self.y_block - MODULE_SIZE + row * MODULE_SIZE
-                    module = Module(x_module, y_module)
                     self.modules_xy[i][0] = x_module
                     self.modules_xy[i][1] = y_module
                     i += 1
-                    module.draw()
+                    draw_module(x_module, y_module)
                 pygame.display.update()
 
     def rotate(self):
@@ -223,16 +219,12 @@ class Block:
                         i += 1
             if not collision:
                 self.remove()
-                for row in range(self.size_of_block):
-                    for column in range(self.size_of_block):
-                        self.shape[row][column] = shape_rotated[row][column]
-                for i in range(4):
-                    self.modules_xy[i] = modules_xy_rotated[i]
+                self.shape = deepcopy(shape_rotated)
+                self.modules_xy = deepcopy(modules_xy_rotated)
                 for i in range(4):
                     x_module = modules_xy_rotated[i][0]
                     y_module = modules_xy_rotated[i][1]
-                    module = Module(x_module, y_module)
-                    module.draw()
+                    draw_module(x_module, y_module)
             else:
                 if moved_right:
                     self.x_block -= MODULE_SIZE
@@ -254,14 +246,11 @@ class Block:
 
     def move(self, direction):
         def draw_moved_block():
-            for row in range(4):
-                for column in range(2):
-                    self.modules_xy[row][column] = modules_xy_moved[row][column]
+            self.modules_xy = deepcopy(modules_xy_moved)
             for row in range(4):
                 x_module = self.modules_xy[row][0]
                 y_module = self.modules_xy[row][1]
-                module = Module(x_module, y_module)
-                module.draw()
+                draw_module(x_module, y_module)
             pygame.display.update()
 
         def check_collision_after_move():
@@ -275,7 +264,6 @@ class Block:
 
         modules_xy_moved = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         collision = False
-
         i, x_moved, y_moved = 0, 0, 0
 
         if not self.block_set:
@@ -338,12 +326,6 @@ class Block:
                     self.x_block -= MODULE_SIZE
 
 
-block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
-block1.draw()
-
-print("\n tutaj zaczynaja sie nowe komunikaty")
-
-
 # 3. kasowanie lini, sprawdzanie czy przegrana
 
 
@@ -358,45 +340,55 @@ def delete_line():
                 break
         if full_line:
             for column1 in range(number_of_board_columns):
-                module = Module(column1 * MODULE_SIZE, row * MODULE_SIZE)
-                module.remove()
+                x1_module = column1 * MODULE_SIZE
+                y1_module = row * MODULE_SIZE
+                remove_module(x1_module, y1_module)
             # TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
             for row1 in range(row, 0, -1):
                 for column1 in range(number_of_board_columns):
                     if board[row1 - 1][column1][2] == 1:
-                        module1 = Module(column1 * MODULE_SIZE, row1 * MODULE_SIZE)
-                        module1.draw()
-                        module1 = Module(column1 * MODULE_SIZE, (row1 - 1) * MODULE_SIZE)
-                        module1.remove()
+                        x2_module = column1 * MODULE_SIZE
+                        y2_module = row1 * MODULE_SIZE
+                        y3_module = (row1 - 1) * MODULE_SIZE
+                        draw_module(x2_module, y2_module)
+                        remove_module(x2_module, y3_module)
                     board[row1][column1][2] = board[row1 - 1][column1][2]
             return full_line
 
 
 # 4. Glowny program, obsluga zdarzen i klawiszy
 
-pygame.time.set_timer(pygame.USEREVENT, 1000)
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if not block1.block_set:
-            if event.type == pygame.USEREVENT:  # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
-                block1.move(Direction.DOWN)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    block1.rotate()
-                if event.key == pygame.K_RIGHT:
-                    block1.move(Direction.RIGHT)
-                if event.key == pygame.K_DOWN:
+def main():
+    running = True
+    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
+    block1.draw()
+    pygame.time.set_timer(pygame.USEREVENT, 1000)
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if not block1.block_set:
+                if event.type == pygame.USEREVENT:  # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
                     block1.move(Direction.DOWN)
-                if event.key == pygame.K_LEFT:
-                    block1.move(Direction.LEFT)
-        else:
-            while delete_line():  # TODO sprawdzic czy mozna to zrobic lepiej
-                delete_line()
-            # 1. losowanie klocka, ktory zaraz spadnie
-            random_number = randint(0, 6)
-            block_shape = switch_number_shape(random_number)
-            block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
-            block1.draw()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        block1.rotate()
+                    if event.key == pygame.K_RIGHT:
+                        block1.move(Direction.RIGHT)
+                    if event.key == pygame.K_DOWN:
+                        block1.move(Direction.DOWN)
+                    if event.key == pygame.K_LEFT:
+                        block1.move(Direction.LEFT)
+            else:
+                while delete_line():  # TODO sprawdzic czy mozna to zrobic lepiej
+                    delete_line()
+                # 1. losowanie klocka, ktory zaraz spadnie
+                random_number = randint(0, 6)
+                block_shape = switch_number_shape(random_number)
+                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
+                block1.draw()
+
+
+if __name__ == "__main__":
+    main()
