@@ -44,10 +44,11 @@ for row in range(number_of_board_rows):
 
 # 0.2 Tworzenie modulu (kwadracika)
 
+module = pygame.image.load("module.jpg")
 
 def draw_module(x_module, y_module):
-    pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
-
+    #pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
+    screen.blit(module, [x_module, y_module])
 
 def remove_module(x_module, y_module):
     pygame.draw.rect(screen, (0, 0, 0), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
@@ -329,6 +330,7 @@ class Block:
 # 3. kasowanie lini, sprawdzanie czy przegrana
 
 
+
 def delete_line():
     full_line = False
     for row in range(number_of_board_rows):
@@ -363,6 +365,7 @@ def main():
     block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
     block1.draw()
     pygame.time.set_timer(pygame.USEREVENT, 1000)
+    score = 0
 
     while running:
         for event in pygame.event.get():
@@ -381,8 +384,9 @@ def main():
                     if event.key == pygame.K_LEFT:
                         block1.move(Direction.LEFT)
             else:
-                while delete_line():  # TODO sprawdzic czy mozna to zrobic lepiej
-                    delete_line()
+                while delete_line():
+                    score += 1
+                    print("score:", score)
                 # 1. losowanie klocka, ktory zaraz spadnie
                 random_number = randint(0, 6)
                 block_shape = switch_number_shape(random_number)
