@@ -44,11 +44,31 @@ for row in range(number_of_board_rows):
 
 # 0.2 Tworzenie modulu (kwadracika)
 
-module = pygame.image.load("module.jpg")
+module_green = pygame.image.load("module_green.jpg")
+module_blue = pygame.image.load("module_blue.jpg")
+module_orange = pygame.image.load("module_orange.jpg")
+module_dark_blue = pygame.image.load("module_dark_blue.jpg")
+module_yellow = pygame.image.load("module_yellow.jpg")
+module_violet = pygame.image.load("module_violet.jpg")
+module_red = pygame.image.load("module_red.jpg")
 
-def draw_module(x_module, y_module):
+def draw_module(x_module, y_module, color):
     #pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
-    screen.blit(module, [x_module, y_module])
+    if color == 'green':
+        screen.blit(module_green, [x_module, y_module])
+    elif color == 'blue':
+        screen.blit(module_blue, [x_module, y_module])
+    elif color == 'dark_blue':
+        screen.blit(module_dark_blue, [x_module, y_module])
+    elif color == 'orange':
+        screen.blit(module_orange, [x_module, y_module])
+    elif color == 'yellow':
+        screen.blit(module_yellow, [x_module, y_module])
+    elif color == 'violet':
+        screen.blit(module_violet, [x_module, y_module])
+    else:
+        screen.blit(module_red, [x_module, y_module])
+
 
 def remove_module(x_module, y_module):
     pygame.draw.rect(screen, (0, 0, 0), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
@@ -84,30 +104,35 @@ block_S = [[1, 0, 0],
            [1, 1, 0],
            [0, 1, 0]]
 
-
-def switch_number_shape(number):
-    switcher = {
-        0: block_O,
-        1: block_L,
-        2: block_J,
-        3: block_I,
-        4: block_T,
-        5: block_Z,
-        6: block_S
-    }
-    return switcher.get(number, block_O)
+#TODO wstadzic switchera do klasy block razem z mapami klockow
 
 
 # 0.4 Manipulacja klockiem
 
 class Block:
-    def __init__(self, x_block, y_block, shape):
+    def __init__(self, x_block, y_block, number):
         self.x_block = x_block
         self.y_block = y_block
-        self.size_of_block = len(shape)
-        self.shape = shape
+
+        def switch_number_shape(number):
+            switcher = {
+                0: block_O,
+                1: block_L,
+                2: block_J,
+                3: block_I,
+                4: block_T,
+                5: block_Z,
+                6: block_S
+            }
+            return switcher.get(number, block_O)
+
+        self.shape = switch_number_shape(number)
+        self.size_of_block = len(self.shape)
         self.modules_xy = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.block_set = False
+        number_color = {0: 'yellow', 3: 'blue', 2: 'dark_blue', 1: 'orange',
+                        6: 'green', 4: 'violet', 5: 'red'}
+        self.color = number_color[number]
 
     def do_after_block_set(self):
         for row in range(number_of_board_rows):
@@ -135,7 +160,7 @@ class Block:
                     self.modules_xy[i][0] = x_module
                     self.modules_xy[i][1] = y_module
                     i += 1
-                    draw_module(x_module, y_module)
+                    draw_module(x_module, y_module, self.color)
                 pygame.display.update()
 
     def rotate(self):
@@ -188,7 +213,7 @@ class Block:
                 if self.shape == block_I_270deg:
                     self.y_block += MODULE_SIZE
 
-            # sprawdzanie czy klocek po obrocie (shape_rotated) będzie kolidowal z innymi klockai na planszy (board)
+            # sprawdzanie czy klocek po obrocie (shape_rotated) bedzie kolidowal z innymi klockai na planszy (board)
             collision = False
             i, x_rotated, y_rotated = 0, 0, 0
             modules_xy_rotated = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -225,7 +250,7 @@ class Block:
                 for i in range(4):
                     x_module = modules_xy_rotated[i][0]
                     y_module = modules_xy_rotated[i][1]
-                    draw_module(x_module, y_module)
+                    draw_module(x_module, y_module, self.color)
             else:
                 if moved_right:
                     self.x_block -= MODULE_SIZE
@@ -251,7 +276,7 @@ class Block:
             for row in range(4):
                 x_module = self.modules_xy[row][0]
                 y_module = self.modules_xy[row][1]
-                draw_module(x_module, y_module)
+                draw_module(x_module, y_module, self.color)
             pygame.display.update()
 
         def check_collision_after_move():
@@ -352,7 +377,7 @@ def delete_line():
                         x2_module = column1 * MODULE_SIZE
                         y2_module = row1 * MODULE_SIZE
                         y3_module = (row1 - 1) * MODULE_SIZE
-                        draw_module(x2_module, y2_module)
+                        draw_module(x2_module, y2_module, 'green')
                         remove_module(x2_module, y3_module)
                     board[row1][column1][2] = board[row1 - 1][column1][2]
             return full_line
@@ -362,7 +387,7 @@ def delete_line():
 
 def main():
     running = True
-    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_I)
+    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, 0)
     block1.draw()
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     score = 0
@@ -389,8 +414,7 @@ def main():
                     print("score:", score)
                 # 1. losowanie klocka, ktory zaraz spadnie
                 random_number = randint(0, 6)
-                block_shape = switch_number_shape(random_number)
-                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, block_shape)
+                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, random_number) #TODO przekazywac numer do klasy block
                 block1.draw()
 
 
