@@ -54,19 +54,19 @@ module_red = pygame.image.load("module_red.jpg")
 
 def draw_module(x_module, y_module, color):
     #pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
-    if color == 'green':
+    if color == 6:
         screen.blit(module_green, [x_module, y_module])
-    elif color == 'blue':
+    elif color == 3:
         screen.blit(module_blue, [x_module, y_module])
-    elif color == 'dark_blue':
+    elif color == 2:
         screen.blit(module_dark_blue, [x_module, y_module])
-    elif color == 'orange':
+    elif color == 1:
         screen.blit(module_orange, [x_module, y_module])
-    elif color == 'yellow':
+    elif color == 7:
         screen.blit(module_yellow, [x_module, y_module])
-    elif color == 'violet':
+    elif color == 4:
         screen.blit(module_violet, [x_module, y_module])
-    else:
+    elif color == 5:
         screen.blit(module_red, [x_module, y_module])
 
 
@@ -113,16 +113,17 @@ class Block:
     def __init__(self, x_block, y_block, number):
         self.x_block = x_block
         self.y_block = y_block
+        self.number = number
 
         def switch_number_shape(number):
             switcher = {
-                0: block_O,
                 1: block_L,
                 2: block_J,
                 3: block_I,
                 4: block_T,
                 5: block_Z,
-                6: block_S
+                6: block_S,
+                7: block_O
             }
             return switcher.get(number, block_O)
 
@@ -130,16 +131,16 @@ class Block:
         self.size_of_block = len(self.shape)
         self.modules_xy = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.block_set = False
-        number_color = {0: 'yellow', 3: 'blue', 2: 'dark_blue', 1: 'orange',
-                        6: 'green', 4: 'violet', 5: 'red'}
-        self.color = number_color[number]
+        #number_color = {3: 'blue', 2: 'dark_blue', 1: 'orange',
+        #              6: 'green', 4: 'violet', 5: 'red', 7: 'yellow'}
+        #self.color = number_color[number]
 
     def do_after_block_set(self):
         for row in range(number_of_board_rows):
             for column in range(number_of_board_columns):
                 for i in range(4):
                     if self.modules_xy[i] == board[row][column]:
-                        board[row][column][2] = 1
+                        board[row][column][2] = self.number
                         # print("block is set on board", board[row][column])
         self.block_set = True
 
@@ -160,7 +161,7 @@ class Block:
                     self.modules_xy[i][0] = x_module
                     self.modules_xy[i][1] = y_module
                     i += 1
-                    draw_module(x_module, y_module, self.color)
+                    draw_module(x_module, y_module, self.number)
                 pygame.display.update()
 
     def rotate(self):
@@ -236,7 +237,7 @@ class Block:
                                 break
                             for column1 in range(number_of_board_columns):
                                 if x_rotated == board[row1][column1][0] and y_rotated == board[row1][column1][1]:
-                                    if board[row1][column1][2] == 1:
+                                    if board[row1][column1][2] != 0:
                                         collision = True
                                         break
                                     else:
@@ -250,7 +251,7 @@ class Block:
                 for i in range(4):
                     x_module = modules_xy_rotated[i][0]
                     y_module = modules_xy_rotated[i][1]
-                    draw_module(x_module, y_module, self.color)
+                    draw_module(x_module, y_module, self.number)
             else:
                 if moved_right:
                     self.x_block -= MODULE_SIZE
@@ -276,7 +277,7 @@ class Block:
             for row in range(4):
                 x_module = self.modules_xy[row][0]
                 y_module = self.modules_xy[row][1]
-                draw_module(x_module, y_module, self.color)
+                draw_module(x_module, y_module, self.number)
             pygame.display.update()
 
         def check_collision_after_move():
@@ -284,7 +285,7 @@ class Block:
             for row in range(number_of_board_rows):
                 for column in range(number_of_board_columns):
                     if x_moved == board[row][column][0] and y_moved == board[row][column][1]:
-                        if board[row][column][2] == 1:
+                        if board[row][column][2] != 0:
                             collision1 = True
                             return collision1
 
@@ -360,26 +361,26 @@ def delete_line():
     full_line = False
     for row in range(number_of_board_rows):
         for column in range(number_of_board_columns):
-            if board[row][column][2] == 1:
+            if board[row][column][2] != 0:
                 full_line = True
             else:
                 full_line = False
                 break
         if full_line:
-            for column1 in range(number_of_board_columns):
-                x1_module = column1 * MODULE_SIZE
-                y1_module = row * MODULE_SIZE
-                remove_module(x1_module, y1_module)
+            for column_in_full_line in range(number_of_board_columns):
+                x_module_in_full_line = column_in_full_line * MODULE_SIZE
+                y_module_in_full_line = row * MODULE_SIZE
+                remove_module(x_module_in_full_line, y_module_in_full_line)
             # TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
-            for row1 in range(row, 0, -1):
-                for column1 in range(number_of_board_columns):
-                    if board[row1 - 1][column1][2] == 1:
-                        x2_module = column1 * MODULE_SIZE
-                        y2_module = row1 * MODULE_SIZE
-                        y3_module = (row1 - 1) * MODULE_SIZE
-                        draw_module(x2_module, y2_module, 'green')
-                        remove_module(x2_module, y3_module)
-                    board[row1][column1][2] = board[row1 - 1][column1][2]
+            for row_above_full_line in range(row, 0, -1):
+                for column_above_full_line in range(number_of_board_columns):
+                    if board[row_above_full_line - 1][column_above_full_line][2] != 0: #tu jest color ktory chceprzeniesc nizej
+                        x_module_above_full_line = column_above_full_line * MODULE_SIZE
+                        y_module_target = row_above_full_line * MODULE_SIZE
+                        y_module_to_place_on_target = (row_above_full_line - 1) * MODULE_SIZE
+                        draw_module(x_module_above_full_line, y_module_target, board[row_above_full_line - 1][column_above_full_line][2])
+                        remove_module(x_module_above_full_line, y_module_to_place_on_target)
+                    board[row_above_full_line][column_above_full_line][2] = board[row_above_full_line - 1][column_above_full_line][2]
             return full_line
 
 
@@ -387,7 +388,7 @@ def delete_line():
 
 def main():
     running = True
-    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, 0)
+    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, 1)
     block1.draw()
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     score = 0
@@ -413,7 +414,7 @@ def main():
                     score += 1
                     print("score:", score)
                 # 1. losowanie klocka, ktory zaraz spadnie
-                random_number = randint(0, 6)
+                random_number = randint(1, 7)
                 block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, random_number) #TODO przekazywac numer do klasy block
                 block1.draw()
 
