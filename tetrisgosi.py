@@ -13,20 +13,31 @@ class Direction(Enum):
     LEFT = 2
     UP = 3
 
-# 0. Ustawienia poczatkowe:
 
-# 0.0 Ustawienia okna:
-
-BOARD_WIDTH = 300
-BOARD_HEIGHT = 420
+BOARD_WIDTH = 360
+BOARD_HEIGHT = 540
 MODULE_SIZE = 30
+TOP_MARGIN = 30
+LEFT_MARGIN = 30
 
-# logo = pygame.image.load("tetris_logo.png")
-# pygame.display.set_icon(logo)
+logo = pygame.image.load("tetris_logo.png")
+pygame.display.set_icon(logo)
 pygame.display.set_caption("Tetris Gosi")
-screen = pygame.display.set_mode(size=(BOARD_WIDTH, BOARD_HEIGHT))
+screen = pygame.display.set_mode(size=(600, 600))
 
-# 0.1 Tworzenie siatki obszaru gry
+pygame.draw.rect(screen, (255, 255, 255), (30, 30, 360, 540), 5)
+pygame.draw.rect(screen, (255, 255, 255), (420, 450, 150, 120), 5)
+pygame.draw.rect(screen, (255, 255, 255), (420, 30, 150, 210), 5)
+
+
+score_font = pygame.font.SysFont('Arial', 30)
+score_text = score_font.render('Your score:', True, (255, 255, 255))
+screen.blit(score_text, (430, 460))
+
+score_font2 = pygame.font.SysFont('Arial', 40)
+
+next_block_text = score_font.render('Next block:', True, (255, 255, 255))
+screen.blit(next_block_text, (435, 40))
 
 number_of_board_columns = int(BOARD_WIDTH / MODULE_SIZE)
 number_of_board_rows = int(BOARD_HEIGHT / MODULE_SIZE)
@@ -41,9 +52,6 @@ for row in range(number_of_board_rows):
         y = row * MODULE_SIZE
         board[row][column] = [x, y, s]
 
-
-# 0.2 Tworzenie modulu (kwadracika)
-
 module_green = pygame.image.load("module_green.jpg")
 module_blue = pygame.image.load("module_blue.jpg")
 module_orange = pygame.image.load("module_orange.jpg")
@@ -52,8 +60,8 @@ module_yellow = pygame.image.load("module_yellow.jpg")
 module_violet = pygame.image.load("module_violet.jpg")
 module_red = pygame.image.load("module_red.jpg")
 
+
 def draw_module(x_module, y_module, color):
-    #pygame.draw.rect(screen, (255, 255, 255), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
     if color == 6:
         screen.blit(module_green, [x_module, y_module])
     elif color == 3:
@@ -73,8 +81,6 @@ def draw_module(x_module, y_module, color):
 def remove_module(x_module, y_module):
     pygame.draw.rect(screen, (0, 0, 0), (x_module, y_module, MODULE_SIZE, MODULE_SIZE))
 
-
-# 0.3 Tworzenie map klockow
 
 block_O = [[1, 1],
            [1, 1]]
@@ -104,10 +110,6 @@ block_S = [[1, 0, 0],
            [1, 1, 0],
            [0, 1, 0]]
 
-#TODO wstadzic switchera do klasy block razem z mapami klockow
-
-
-# 0.4 Manipulacja klockiem
 
 class Block:
     def __init__(self, x_block, y_block, number):
@@ -131,9 +133,6 @@ class Block:
         self.size_of_block = len(self.shape)
         self.modules_xy = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.block_set = False
-        #number_color = {3: 'blue', 2: 'dark_blue', 1: 'orange',
-        #              6: 'green', 4: 'violet', 5: 'red', 7: 'yellow'}
-        #self.color = number_color[number]
 
     def do_after_block_set(self):
         for row in range(number_of_board_rows):
@@ -141,7 +140,6 @@ class Block:
                 for i in range(4):
                     if self.modules_xy[i] == board[row][column]:
                         board[row][column][2] = self.number
-                        # print("block is set on board", board[row][column])
         self.block_set = True
 
     def remove(self):
@@ -214,7 +212,6 @@ class Block:
                 if self.shape == block_I_270deg:
                     self.y_block += MODULE_SIZE
 
-            # sprawdzanie czy klocek po obrocie (shape_rotated) bedzie kolidowal z innymi klockai na planszy (board)
             collision = False
             i, x_rotated, y_rotated = 0, 0, 0
             modules_xy_rotated = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -353,10 +350,6 @@ class Block:
                     self.x_block -= MODULE_SIZE
 
 
-# 3. kasowanie lini, sprawdzanie czy przegrana
-
-
-
 def delete_line():
     full_line = False
     for row in range(number_of_board_rows):
@@ -371,10 +364,9 @@ def delete_line():
                 x_module_in_full_line = column_in_full_line * MODULE_SIZE
                 y_module_in_full_line = row * MODULE_SIZE
                 remove_module(x_module_in_full_line, y_module_in_full_line)
-            # TODO jesli modul 'wisi w powietrzu' to ma opasc na inny modul
             for row_above_full_line in range(row, 0, -1):
                 for column_above_full_line in range(number_of_board_columns):
-                    if board[row_above_full_line - 1][column_above_full_line][2] != 0: #tu jest color ktory chceprzeniesc nizej
+                    if board[row_above_full_line - 1][column_above_full_line][2] != 0:
                         x_module_above_full_line = column_above_full_line * MODULE_SIZE
                         y_module_target = row_above_full_line * MODULE_SIZE
                         y_module_to_place_on_target = (row_above_full_line - 1) * MODULE_SIZE
@@ -384,11 +376,13 @@ def delete_line():
             return full_line
 
 
-# 4. Glowny program, obsluga zdarzen i klawiszy
-
 def main():
     running = True
-    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, 1)
+    random_number = randint(1, 7)
+    next_block_number = randint(1, 7)
+    next_block = Block(480, 130, next_block_number)
+    next_block.draw()
+    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, random_number)
     block1.draw()
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     score = 0
@@ -398,7 +392,7 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             if not block1.block_set:
-                if event.type == pygame.USEREVENT:  # 2. Automatyczne przesuwanie klocka w dol co okreslony czas
+                if event.type == pygame.USEREVENT:
                     block1.move(Direction.DOWN)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
@@ -412,11 +406,16 @@ def main():
             else:
                 while delete_line():
                     score += 1
-                    print("score:", score)
-                # 1. losowanie klocka, ktory zaraz spadnie
-                random_number = randint(1, 7)
-                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, random_number) #TODO przekazywac numer do klasy block
+                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, next_block_number)
                 block1.draw()
+                random_number = randint(1, 7)
+                next_block_number = random_number
+                next_block = Block(480, 130, next_block_number)
+                pygame.draw.rect(screen, (0, 0, 0), (425, 100, 140, 135))
+                pygame.draw.rect(screen, (0, 0, 0), (425, 500, 140, 60))
+                next_block.draw()
+                score_text2 = score_font2.render(str(score), True, (255, 255, 255))
+                screen.blit(score_text2, (430, 505))
 
 
 if __name__ == "__main__":
