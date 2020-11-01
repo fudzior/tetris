@@ -19,15 +19,16 @@ BOARD_HEIGHT = 540
 MODULE_SIZE = 30
 TOP_MARGIN = 30
 LEFT_MARGIN = 30
+LINE_THICK = 4
 
 logo = pygame.image.load("tetris_logo.png")
 pygame.display.set_icon(logo)
 pygame.display.set_caption("Tetris Gosi")
 screen = pygame.display.set_mode(size=(600, 600))
 
-pygame.draw.rect(screen, (255, 255, 255), (30, 30, 360, 540), 5)
-pygame.draw.rect(screen, (255, 255, 255), (420, 450, 150, 120), 5)
-pygame.draw.rect(screen, (255, 255, 255), (420, 30, 150, 210), 5)
+pygame.draw.rect(screen, (255, 255, 255), (LEFT_MARGIN - LINE_THICK, TOP_MARGIN - LINE_THICK, int(BOARD_WIDTH + 1.5 * LINE_THICK), int(BOARD_HEIGHT + 1.5 * LINE_THICK)), LINE_THICK)
+pygame.draw.rect(screen, (255, 255, 255), (420, 450, 150, 120), LINE_THICK)
+pygame.draw.rect(screen, (255, 255, 255), (420, 30, 150, 210), LINE_THICK)
 
 
 score_font = pygame.font.SysFont('Arial', 30)
@@ -35,6 +36,14 @@ score_text = score_font.render('Your score:', True, (255, 255, 255))
 screen.blit(score_text, (430, 460))
 
 score_font2 = pygame.font.SysFont('Arial', 40)
+
+help_font = pygame.font.SysFont('Arial', 20)
+help_text = help_font.render('Press space to rotate', True, (255, 255, 255))
+screen.blit(help_text, (415, 255))
+help_text1 = help_font.render('Press arrows to move', True, (255, 255, 255))
+screen.blit(help_text1, (415, 285))
+
+
 
 next_block_text = score_font.render('Next block:', True, (255, 255, 255))
 screen.blit(next_block_text, (435, 40))
@@ -48,8 +57,8 @@ board = [[[x, y, s]] * number_of_board_columns for i in range(number_of_board_ro
 
 for row in range(number_of_board_rows):
     for column in range(number_of_board_columns):
-        x = column * MODULE_SIZE
-        y = row * MODULE_SIZE
+        x = column * MODULE_SIZE + LEFT_MARGIN
+        y = row * MODULE_SIZE + TOP_MARGIN
         board[row][column] = [x, y, s]
 
 module_green = pygame.image.load("module_green.jpg")
@@ -191,22 +200,22 @@ class Block:
 
         # sprawdzanie czy czesc shape z "0" wykracza poza plansze:
         if not self.block_set:
-            if self.x_block < MODULE_SIZE:
+            if self.x_block < MODULE_SIZE + LEFT_MARGIN:
                 self.x_block += MODULE_SIZE
                 moved_right = True
                 if self.shape == block_I_180deg:
                     self.x_block += MODULE_SIZE
-            if self.x_block > BOARD_WIDTH - (self.size_of_block - 1) * MODULE_SIZE:
+            if self.x_block > BOARD_WIDTH + LEFT_MARGIN - (self.size_of_block - 1) * MODULE_SIZE:
                 self.x_block -= MODULE_SIZE
                 moved_left = True
                 if self.shape == block_I_copy:
                     self.x_block -= MODULE_SIZE
-            if self.y_block > BOARD_HEIGHT - (self.size_of_block - 1) * MODULE_SIZE:
+            if self.y_block > BOARD_HEIGHT +TOP_MARGIN - (self.size_of_block - 1) * MODULE_SIZE:
                 self.y_block -= MODULE_SIZE
                 moved_up = True
                 if self.shape == block_I_90deg:
                     self.y_block -= MODULE_SIZE
-            if self.y_block < MODULE_SIZE:
+            if self.y_block < MODULE_SIZE + TOP_MARGIN:
                 self.y_block += MODULE_SIZE
                 moved_down = True
                 if self.shape == block_I_270deg:
@@ -293,7 +302,7 @@ class Block:
         if not self.block_set:
             if direction == Direction.RIGHT:
                 for i in range(4):
-                    if self.modules_xy[i][0] + MODULE_SIZE >= BOARD_WIDTH:
+                    if self.modules_xy[i][0] + MODULE_SIZE >= BOARD_WIDTH + LEFT_MARGIN:
                         collision = True
                         break
                 if not collision:
@@ -312,7 +321,7 @@ class Block:
                     self.x_block += MODULE_SIZE
             elif direction == Direction.DOWN:
                 for i in range(4):
-                    if self.modules_xy[i][1] + MODULE_SIZE >= BOARD_HEIGHT:
+                    if self.modules_xy[i][1] + MODULE_SIZE >= BOARD_HEIGHT + TOP_MARGIN:
                         self.do_after_block_set()
                         break
                 if not self.block_set:
@@ -331,7 +340,7 @@ class Block:
                     self.y_block += MODULE_SIZE
             elif direction == Direction.LEFT:
                 for i in range(4):
-                    if self.modules_xy[i][0] - MODULE_SIZE < 0:
+                    if self.modules_xy[i][0] - MODULE_SIZE < LEFT_MARGIN:
                         collision = True
                         break
                 if not collision:
@@ -361,15 +370,15 @@ def delete_line():
                 break
         if full_line:
             for column_in_full_line in range(number_of_board_columns):
-                x_module_in_full_line = column_in_full_line * MODULE_SIZE
-                y_module_in_full_line = row * MODULE_SIZE
+                x_module_in_full_line = column_in_full_line * MODULE_SIZE + LEFT_MARGIN
+                y_module_in_full_line = row * MODULE_SIZE +TOP_MARGIN
                 remove_module(x_module_in_full_line, y_module_in_full_line)
             for row_above_full_line in range(row, 0, -1):
                 for column_above_full_line in range(number_of_board_columns):
                     if board[row_above_full_line - 1][column_above_full_line][2] != 0:
-                        x_module_above_full_line = column_above_full_line * MODULE_SIZE
-                        y_module_target = row_above_full_line * MODULE_SIZE
-                        y_module_to_place_on_target = (row_above_full_line - 1) * MODULE_SIZE
+                        x_module_above_full_line = column_above_full_line * MODULE_SIZE + LEFT_MARGIN
+                        y_module_target = row_above_full_line * MODULE_SIZE + TOP_MARGIN
+                        y_module_to_place_on_target = (row_above_full_line - 1) * MODULE_SIZE +TOP_MARGIN
                         draw_module(x_module_above_full_line, y_module_target, board[row_above_full_line - 1][column_above_full_line][2])
                         remove_module(x_module_above_full_line, y_module_to_place_on_target)
                     board[row_above_full_line][column_above_full_line][2] = board[row_above_full_line - 1][column_above_full_line][2]
@@ -382,9 +391,9 @@ def main():
     next_block_number = randint(1, 7)
     next_block = Block(480, 130, next_block_number)
     next_block.draw()
-    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, random_number)
+    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE + TOP_MARGIN, random_number)
     block1.draw()
-    pygame.time.set_timer(pygame.USEREVENT, 1000)
+    pygame.time.set_timer(pygame.USEREVENT, 500)
     score = 0
 
     while running:
@@ -406,7 +415,7 @@ def main():
             else:
                 while delete_line():
                     score += 1
-                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE), MODULE_SIZE, next_block_number)
+                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE +TOP_MARGIN, next_block_number)
                 block1.draw()
                 random_number = randint(1, 7)
                 next_block_number = random_number
