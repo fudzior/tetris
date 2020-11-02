@@ -43,8 +43,6 @@ screen.blit(help_text, (415, 255))
 help_text1 = help_font.render('Press arrows to move', True, (255, 255, 255))
 screen.blit(help_text1, (415, 285))
 
-
-
 next_block_text = score_font.render('Next block:', True, (255, 255, 255))
 screen.blit(next_block_text, (435, 40))
 
