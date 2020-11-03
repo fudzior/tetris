@@ -1,6 +1,7 @@
 import pygame
 
 pygame.init()
+pygame.mixer.init()
 
 from enum import Enum
 from random import randint
@@ -380,49 +381,114 @@ def delete_line():
                         draw_module(x_module_above_full_line, y_module_target, board[row_above_full_line - 1][column_above_full_line][2])
                         remove_module(x_module_above_full_line, y_module_to_place_on_target)
                     board[row_above_full_line][column_above_full_line][2] = board[row_above_full_line - 1][column_above_full_line][2]
+            pygame.display.update()
             return full_line
+
+
+class Button:
+    def __init__(self,is_on, x_button, y_button):
+        self.is_on = is_on
+        self.x_button = x_button
+        self.y_button = y_button
+
+    def draw(self):
+        if self.is_on:
+            sound_icon = pygame.image.load('sound_icon.jpg')
+            screen.blit(sound_icon, [self.x_button, self.y_button])
+            pygame.mixer.music.unpause()
+        else:
+            mute_icon = pygame.image.load('mute_icon.jpg')
+            screen.blit(mute_icon, [self.x_button, self.y_button])
+            pygame.mixer.music.pause()
+        pygame.display.update()
+
+    def draw_pointed(self):
+        if self.is_on:
+            sound_icon_pressed = pygame.image.load('sound_icon_pressed.jpg')
+            screen.blit(sound_icon_pressed, [self.x_button, self.y_button])
+        else:
+            mute_icon_pressed = pygame.image.load('mute_icon_pressed.jpg')
+            screen.blit(mute_icon_pressed, [self.x_button, self.y_button])
+        pygame.display.update()
 
 
 def main():
     running = True
+
     random_number = randint(1, 7)
     next_block_number = randint(1, 7)
+
     next_block = Block(480, 130, next_block_number)
     next_block.draw()
+
     block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE + TOP_MARGIN, random_number)
     block1.draw()
-    pygame.time.set_timer(pygame.USEREVENT, 500)
+
+    sound_button_x, sound_button_y, sound_button_size = 450, 330, 60
+    sound_is_on = True
+    sound_button = Button(sound_is_on, sound_button_x, sound_button_y)
+    sound_button.draw()
+    pygame.mixer.music.load('music.mp3')
+    pygame.mixer.music.play(0)
+
+    pygame.time.set_timer(pygame.USEREVENT, 100)
+
     score = 0
+    i, j, k = 0, 0, 0
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            mouse = pygame.mouse.get_pos()
+            if sound_button_x < mouse[0] < sound_button_x + sound_button_size and sound_button_y < mouse[1] < sound_button_y + sound_button_size:
+                sound_button.draw_pointed()
+                print("pointed")
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    sound_is_on = not sound_is_on
+                    print("sound is on", sound_is_on)
+                    sound_button = Button(sound_is_on, sound_button_x, sound_button_y)
+                    sound_button.draw()
+                    print("pressed")
+            else:
+                sound_button.draw()
             if not block1.block_set:
+                keys_pressed = pygame.key.get_pressed()
                 if event.type == pygame.USEREVENT:
-                    block1.move(Direction.DOWN)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        block1.rotate()
-                    if event.key == pygame.K_RIGHT:
-                        block1.move(Direction.RIGHT)
-                    if event.key == pygame.K_DOWN:
+                    if i == 10:
                         block1.move(Direction.DOWN)
-                    if event.key == pygame.K_LEFT:
+                        i = 0
+                    else:
+                        i += 1
+                if k == 2:
+                    if keys_pressed[pygame.K_SPACE]:
+                        block1.rotate()
+                    k = 0
+                else:
+                    k += 1
+                if j == 1:
+                    if keys_pressed[pygame.K_RIGHT]:
+                        block1.move(Direction.RIGHT)
+                    if keys_pressed[pygame.K_LEFT]:
                         block1.move(Direction.LEFT)
+                    j = 0
+                else:
+                    j += 1
+                if keys_pressed[pygame.K_DOWN]:
+                    block1.move(Direction.DOWN)
             else:
                 while delete_line():
                     score += 1
+                    pygame.draw.rect(screen, (0, 0, 0), (425, 500, 140, 60))
+                    score_text2 = score_font2.render(str(score), True, (255, 255, 255))
+                    screen.blit(score_text2, (430, 505))
                 block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE +TOP_MARGIN, next_block_number)
                 block1.draw()
                 random_number = randint(1, 7)
                 next_block_number = random_number
                 next_block = Block(480, 130, next_block_number)
                 pygame.draw.rect(screen, (0, 0, 0), (425, 100, 140, 135))
-                pygame.draw.rect(screen, (0, 0, 0), (425, 500, 140, 60))
                 next_block.draw()
-                score_text2 = score_font2.render(str(score), True, (255, 255, 255))
-                screen.blit(score_text2, (430, 505))
 
 
 if __name__ == "__main__":
