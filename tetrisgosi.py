@@ -21,11 +21,12 @@ MODULE_SIZE = 30
 TOP_MARGIN = 30
 LEFT_MARGIN = 30
 LINE_THICK = 4
+SCREEN_SIZE = 600
 
 logo = pygame.image.load("tetris_logo.png")
 pygame.display.set_icon(logo)
 pygame.display.set_caption("Tetris Gosi")
-screen = pygame.display.set_mode(size=(600, 600))
+screen = pygame.display.set_mode(size=(SCREEN_SIZE, SCREEN_SIZE))
 
 pygame.draw.rect(screen, (255, 255, 255), (LEFT_MARGIN - LINE_THICK, TOP_MARGIN - LINE_THICK, int(BOARD_WIDTH + 1.5 * LINE_THICK), int(BOARD_HEIGHT + 1.5 * LINE_THICK)), LINE_THICK)
 pygame.draw.rect(screen, (255, 255, 255), (420, 450, 150, 120), LINE_THICK)
@@ -157,7 +158,7 @@ class Block:
             remove_module(x_module, y_module)
         pygame.display.update()
 
-    def draw(self):
+    def draw(self): #uproszczona draw_new_block nie powoduje zacinania gry i wyswietla od razu nowy block
         i = 0
         for row in range(self.size_of_block):
             for column in range(self.size_of_block):
@@ -169,6 +170,28 @@ class Block:
                     i += 1
                     draw_module(x_module, y_module, self.number)
                 pygame.display.update()
+
+    def draw_new_block(self):
+        i = 0
+        for row in range(self.size_of_block):
+            for column in range(int(number_of_board_columns/2) + 3):
+                for row1 in range(self.size_of_block):
+                    for column1 in range(self.size_of_block):
+                        if self.shape[row1][column1] == 1:
+                            x_module = self.x_block - MODULE_SIZE + column1 * MODULE_SIZE
+                            y_module = self.y_block - MODULE_SIZE + row1 * MODULE_SIZE
+                            if board[row][column][0] == x_module and board[row][column][1] == y_module and board[row][column][2] == 0:
+                                self.modules_xy[i][0] = x_module
+                                self.modules_xy[i][1] = y_module
+                                draw_module(x_module, y_module, self.number)
+                                pygame.display.update()
+                                i += 1
+                            elif board[row][column][0] == x_module and board[row][column][1] == y_module and board[row][column][2] != 0:
+                                game_over = True
+                                print("game over")
+                                return game_over
+        game_over = False
+        return game_over
 
     def rotate(self):
         shape_rotated = [[0] * self.size_of_block for i in range(self.size_of_block)]
@@ -412,8 +435,21 @@ class Button:
         pygame.display.update()
 
 
+
+def do_after_game_over(score):
+    pygame.draw.rect(screen, (0, 0, 0), (int(SCREEN_SIZE/4), int(SCREEN_SIZE/4), int(SCREEN_SIZE/2), int(SCREEN_SIZE/2)))
+    pygame.draw.rect(screen, (255, 255, 255), (int(SCREEN_SIZE/4 + LEFT_MARGIN - LINE_THICK), int(SCREEN_SIZE/4 + TOP_MARGIN - LINE_THICK), int(SCREEN_SIZE/2 - 2*LEFT_MARGIN - 1.5 * LINE_THICK), int(SCREEN_SIZE/2 - 2*TOP_MARGIN - 1.5 * LINE_THICK)), LINE_THICK)
+    game_over_text = score_font.render('GAME OVER', True, (255, 255, 255))
+    screen.blit(game_over_text, (int(SCREEN_SIZE*0.36), int(SCREEN_SIZE*0.33)))
+    score_game_over_text = help_font.render('Your score:', True, (255, 255, 255))
+    screen.blit(score_game_over_text, (int(SCREEN_SIZE * 0.41), int(SCREEN_SIZE*0.43)))
+    score_game_over_text2 = score_font.render(str(score), True, (255, 255, 255))
+    screen.blit(score_game_over_text2, (int(SCREEN_SIZE * 0.46), int(SCREEN_SIZE * 0.5)))
+    pygame.display.update()
+
 def main():
     running = True
+    game_over = False
 
     random_number = randint(1, 7)
     next_block_number = randint(1, 7)
@@ -428,12 +464,14 @@ def main():
     sound_is_on = True
     sound_button = Button(sound_is_on, sound_button_x, sound_button_y)
     sound_button.draw()
-    pygame.mixer.music.load('music.mp3')
+    pygame.mixer.music.load('Checkie_Brown_-_01_-_Funky_Banane_Nightclub_ID_210.mp3')
     pygame.mixer.music.play(0)
 
     pygame.time.set_timer(pygame.USEREVENT, 100)
 
     score = 0
+    score_text2 = score_font2.render(str(score), True, (255, 255, 255))
+    screen.blit(score_text2, (430, 505))
     i, j, k = 0, 0, 0
 
     while running:
@@ -443,52 +481,52 @@ def main():
             mouse = pygame.mouse.get_pos()
             if sound_button_x < mouse[0] < sound_button_x + sound_button_size and sound_button_y < mouse[1] < sound_button_y + sound_button_size:
                 sound_button.draw_pointed()
-                print("pointed")
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     sound_is_on = not sound_is_on
-                    print("sound is on", sound_is_on)
                     sound_button = Button(sound_is_on, sound_button_x, sound_button_y)
                     sound_button.draw()
-                    print("pressed")
             else:
                 sound_button.draw()
-            if not block1.block_set:
-                keys_pressed = pygame.key.get_pressed()
-                if event.type == pygame.USEREVENT:
-                    if i == 10:
-                        block1.move(Direction.DOWN)
-                        i = 0
+            if not game_over:
+                if not block1.block_set:
+                    keys_pressed = pygame.key.get_pressed()
+                    if event.type == pygame.USEREVENT:
+                        if i == 10:
+                            block1.move(Direction.DOWN)
+                            i = 0
+                        else:
+                            i += 1
+                    if k == 2:
+                        if keys_pressed[pygame.K_SPACE]:
+                            block1.rotate()
+                        k = 0
                     else:
-                        i += 1
-                if k == 2:
-                    if keys_pressed[pygame.K_SPACE]:
-                        block1.rotate()
-                    k = 0
+                        k += 1
+                    if j == 1:
+                        if keys_pressed[pygame.K_RIGHT]:
+                            block1.move(Direction.RIGHT)
+                        if keys_pressed[pygame.K_LEFT]:
+                            block1.move(Direction.LEFT)
+                        j = 0
+                    else:
+                        j += 1
+                    if keys_pressed[pygame.K_DOWN]:
+                        block1.move(Direction.DOWN)
                 else:
-                    k += 1
-                if j == 1:
-                    if keys_pressed[pygame.K_RIGHT]:
-                        block1.move(Direction.RIGHT)
-                    if keys_pressed[pygame.K_LEFT]:
-                        block1.move(Direction.LEFT)
-                    j = 0
-                else:
-                    j += 1
-                if keys_pressed[pygame.K_DOWN]:
-                    block1.move(Direction.DOWN)
+                    while delete_line():
+                        score += 1
+                        pygame.draw.rect(screen, (0, 0, 0), (425, 500, 140, 60))
+                        score_text2 = score_font2.render(str(score), True, (255, 255, 255))
+                        screen.blit(score_text2, (430, 505))
+                    block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE + TOP_MARGIN, next_block_number)
+                    game_over = block1.draw_new_block()
+                    random_number = randint(1, 7)
+                    next_block_number = random_number
+                    next_block = Block(480, 130, next_block_number)
+                    pygame.draw.rect(screen, (0, 0, 0), (425, 100, 140, 135))
+                    next_block.draw()
             else:
-                while delete_line():
-                    score += 1
-                    pygame.draw.rect(screen, (0, 0, 0), (425, 500, 140, 60))
-                    score_text2 = score_font2.render(str(score), True, (255, 255, 255))
-                    screen.blit(score_text2, (430, 505))
-                block1 = Block(int(number_of_board_columns / 2 * MODULE_SIZE + LEFT_MARGIN), MODULE_SIZE +TOP_MARGIN, next_block_number)
-                block1.draw()
-                random_number = randint(1, 7)
-                next_block_number = random_number
-                next_block = Block(480, 130, next_block_number)
-                pygame.draw.rect(screen, (0, 0, 0), (425, 100, 140, 135))
-                next_block.draw()
+                do_after_game_over(score)
 
 
 if __name__ == "__main__":
