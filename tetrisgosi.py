@@ -194,6 +194,7 @@ class Block:
             remove_module(x_module, y_module)
         pygame.display.update()
 
+
     def draw(self):  # uproszczona draw_new_block nie powoduje zacinania gry i wyswietla od razu nowy block
         i = 0
         for row in range(self.size_of_block):
@@ -216,15 +217,13 @@ class Block:
                         if self.shape[row1][column1] == 1:
                             x_module = self.x_block - MODULE_SIZE + column1 * MODULE_SIZE
                             y_module = self.y_block - MODULE_SIZE + row1 * MODULE_SIZE
-                            if board[row][column][0] == x_module and board[row][column][1] == y_module and \
-                                    board[row][column][2] == 0:
+                            if board[row][column][0] == x_module and board[row][column][1] == y_module and board[row][column][2] == 0:
                                 self.modules_xy[i][0] = x_module
                                 self.modules_xy[i][1] = y_module
                                 draw_module(x_module, y_module, self.number)
                                 pygame.display.update()
                                 i += 1
-                            elif board[row][column][0] == x_module and board[row][column][1] == y_module and \
-                                    board[row][column][2] != 0:
+                            elif board[row][column][0] == x_module and board[row][column][1] == y_module and board[row][column][2] != 0:
                                 game_over = True
                                 print("game over")
                                 return game_over
@@ -510,11 +509,13 @@ def main():
     pygame.time.set_timer(pygame.USEREVENT, fall_time_ms)
 
     score = 0
+
     score_font2 = pygame.font.SysFont('Arial', 40)
     score_text2 = score_font2.render(str(score), True, (255, 255, 255))
     screen.blit(score_text2, (430, 505))
 
     pygame.key.set_repeat(200, 100)
+
 
     while running:
         for event in pygame.event.get():
