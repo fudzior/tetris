@@ -1,9 +1,2 @@
 # tetris
-zeby zaiportowac pygame trzeba w terminal pychamra wpisac:
-pip install pygame
-albo:
-py -m install pygame
-
-to co podaja na https://www.pygame.org/wiki/GettingStarted
-mi nie dziala: 
-python3 -m pip install -U pygame --user
+You can exchange module2.jpg with any different picture.jpg and play tetris with your own blocks.
